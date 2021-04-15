@@ -195,8 +195,7 @@ if __name__ == '__main__':
 
     # Load model
     
-    checkpoint = torch.load(args.model)
-    #, map_location=str(device))
+    checkpoint = torch.load(args.model, map_location=str(device))
     decoder = checkpoint['decoder']
     decoder = decoder.to(device)
     decoder.eval()
