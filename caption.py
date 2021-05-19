@@ -183,19 +183,14 @@ def visualize_att(image_path, seq, alphas, rev_word_map, smooth=True):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Show, Attend, and Tell - Tutorial - Generate Caption')
-
-    parser.add_argument('--img', '-i', help='path to image')
-    parser.add_argument('--model', '-m', help='path to model')
-    parser.add_argument('--word_map', '-wm', help='path to word map JSON')
-    parser.add_argument('--beam_size', '-b', default=5, type=int, help='beam size for beam search')
-    parser.add_argument('--dont_smooth', dest='smooth', action='store_false', help='do not smooth alpha overlay')
-
-    args = parser.parse_args()
+    model_path = 'E:/image-captioning/checkpoint_coco/BEST_checkpoint_coco_5_cap_per_img_5_min_word_freq.pth.tar'
+    word_map_path = 'E:/image-captioning/checkpoint_coco/WORDMAP_coco_5_cap_per_img_5_min_word_freq.json'
+    img = 'C:/Users/HNC/Pictures/fourdogs.jpg'
+    beam_size = 5
 
     # Load model
     
-    checkpoint = torch.load(args.model, map_location=str(device))
+    checkpoint = torch.load(model_path, map_location=str(device))
     decoder = checkpoint['decoder']
     decoder = decoder.to(device)
     decoder.eval()
@@ -204,13 +199,18 @@ if __name__ == '__main__':
     encoder.eval()
 
     # Load word map (word2ix)
-    with open(args.word_map, 'r') as j:
+    with open(word_map_path, 'r') as j:
         word_map = json.load(j)
     rev_word_map = {v: k for k, v in word_map.items()}  # ix2word
 
     # Encode, decode with attention and beam search
-    seq, alphas = caption_image_beam_search(encoder, decoder, args.img, word_map, args.beam_size)
-    alphas = torch.FloatTensor(alphas)
+    #print("encode:", type(encoder))
+    #print("decode:", type(decoder))
+    #print("word_map:", word_map)
+    seq, alphas = caption_image_beam_search(encoder, decoder, img, word_map, beam_size)
+    #alphas = torch.FloatTensor(alphas)
 
     # Visualize caption and attention of best sequence
-    visualize_att(args.img, seq, alphas, rev_word_map, args.smooth)
+   # visualize_att(img, seq, alphas, rev_word_map)
+    words = [rev_word_map[ind] for ind in seq]
+    print(" ".join([str(i) for i in words[1:-1]]))
