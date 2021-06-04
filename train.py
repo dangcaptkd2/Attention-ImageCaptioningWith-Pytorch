@@ -10,6 +10,8 @@ from datasets import *
 from utils import *
 from nltk.translate.bleu_score import corpus_bleu
 
+import matplotlib.pyplot as plt
+
 # Data parameters
 data_folder = '/media/ssd/caption data'  # folder with data files saved by create_input_files.py
 data_name = 'coco_5_cap_per_img_5_min_word_freq'  # base name shared by data files
@@ -43,6 +45,11 @@ def main():
     """
     Training and validation.
     """
+
+
+    loss_list = []
+    top5acc_list = []
+    recent_bleu4_list = []
 
     global best_bleu4, epochs_since_improvement, checkpoint, start_epoch, fine_tune_encoder, data_name, word_map
 
@@ -118,10 +125,14 @@ def main():
               epoch=epoch)
 
         # One epoch's validation
-        recent_bleu4 = validate(val_loader=val_loader,
+        (recent_bleu4, losses, top5accs) = validate(val_loader=val_loader,
                                 encoder=encoder,
                                 decoder=decoder,
                                 criterion=criterion)
+
+        recent_bleu4_list.append(recent_bleu4)
+        loss_list.append(losses)
+        top5acc_list.append(top5accs)
 
         # Check if there was an improvement
         is_best = recent_bleu4 > best_bleu4
@@ -135,6 +146,32 @@ def main():
         # Save checkpoint
         save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer,
                         decoder_optimizer, recent_bleu4, is_best)
+
+        
+    t = loss_list
+    s = [i for i in range(len(t))]
+
+    fig, ax = plt.subplots()
+    ax.plot(s, t)
+    ax.set(xlabel='epoch', ylabel='loss',title='loss')
+    ax.grid()
+    fig.savefig("loss.png")
+
+    t = top5acc_list
+    fig, ax = plt.subplots()
+    ax.plot(s, t)
+    ax.set(xlabel='epoch', ylabel='top5acc',title='top 5 accuracy')
+    ax.grid()
+    fig.savefig("top5acc.png")
+
+    t = recent_bleu4_list
+    fig, ax = plt.subplots()
+    ax.plot(s, t)
+    ax.set(xlabel='epoch', ylabel='bleu4',title='bleu4')
+    ax.grid()
+    fig.savefig("bleu.png")
+
+    plt.show()
 
 
 def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_optimizer, epoch):
@@ -324,7 +361,8 @@ def validate(val_loader, encoder, decoder, criterion):
                 top5=top5accs,
                 bleu=bleu4))
 
-    return bleu4
+    #return bleu4
+    return (bleu4, losses.avg, top5accs.avg)
 
 
 if __name__ == '__main__':
