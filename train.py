@@ -134,6 +134,32 @@ def main():
         loss_list.append(losses)
         top5acc_list.append(top5accs)
 
+        if epoch>5:
+            t = loss_list
+            s = [i for i in range(len(t))]
+
+            fig, ax = plt.subplots()
+            ax.plot(s, t)
+            ax.set(xlabel='epoch', ylabel='loss',title='loss')
+            ax.grid()
+            fig.savefig("loss.png")
+
+            t = top5acc_list
+            fig, ax = plt.subplots()
+            ax.plot(s, t)
+            ax.set(xlabel='epoch', ylabel='top5acc',title='top 5 accuracy')
+            ax.grid()
+            fig.savefig("top5acc.png")
+
+            t = recent_bleu4_list
+            fig, ax = plt.subplots()
+            ax.plot(s, t)
+            ax.set(xlabel='epoch', ylabel='bleu4',title='bleu4')
+            ax.grid()
+            fig.savefig("bleu.png")
+
+            plt.show()
+
         # Check if there was an improvement
         is_best = recent_bleu4 > best_bleu4
         best_bleu4 = max(recent_bleu4, best_bleu4)
@@ -148,30 +174,7 @@ def main():
                         decoder_optimizer, recent_bleu4, is_best)
 
         
-    t = loss_list
-    s = [i for i in range(len(t))]
-
-    fig, ax = plt.subplots()
-    ax.plot(s, t)
-    ax.set(xlabel='epoch', ylabel='loss',title='loss')
-    ax.grid()
-    fig.savefig("loss.png")
-
-    t = top5acc_list
-    fig, ax = plt.subplots()
-    ax.plot(s, t)
-    ax.set(xlabel='epoch', ylabel='top5acc',title='top 5 accuracy')
-    ax.grid()
-    fig.savefig("top5acc.png")
-
-    t = recent_bleu4_list
-    fig, ax = plt.subplots()
-    ax.plot(s, t)
-    ax.set(xlabel='epoch', ylabel='bleu4',title='bleu4')
-    ax.grid()
-    fig.savefig("bleu.png")
-
-    plt.show()
+    
 
 
 def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_optimizer, epoch):
